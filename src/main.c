@@ -8,6 +8,7 @@ void run_quash();
 void handle_exit(char *input);
 void run_echo(char *input); // Declare run_echo here
 void export(char *input);   // Declare builtin_export here
+void pwd();                 // Declare builtin_export here
 
 int main()
 {
@@ -46,6 +47,11 @@ void run_quash()
         {
             export(buffer);
         }
+        else if (strncmp(buffer, "pwd", 8) == 0)
+        {
+            pwd(buffer);
+        }
+
         // Handle unknown commands without printing "You entered"
         else
         {

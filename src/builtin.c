@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h> // Include this for getenv()
 #include <string.h>
+#include <unistd.h> // for getcwd
+#include <limits.h> // for PATH_MAX
 
 void run_echo(char *input)
 {
@@ -46,5 +48,18 @@ void export(char **args, int num_args)
     if (setenv(var, value, 1) == -1)
     {
         perror("export");
+    }
+}
+
+void pwd()
+{
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) != NULL)
+    {
+        printf("%s\n", cwd);
+    }
+    else
+    {
+        perror("getcwd");
     }
 }
