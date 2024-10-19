@@ -4,11 +4,13 @@
 
 #define BUFFER_SIZE 1024
 
+// Function declarations
 void run_quash();
 void handle_exit(char *input);
 void run_echo(char *input); // Declare run_echo here
 void export(char *input);   // Declare builtin_export here
-void pwd();                 // Declare builtin_export here
+void pwd();                 // Declare pwd function here
+void cd(char *path);        // Declare cd function here
 
 int main()
 {
@@ -37,25 +39,37 @@ void run_quash()
         // Handle the "exit" or "quit" commands
         handle_exit(buffer);
 
+        // Remove leading '$' characters from the input
+        char *command = buffer; // Use a new pointer for command processing
+        while (*command == '$' || *command == ' ') {
+            command++; // Move the pointer to the right
+        }
+
         // If the input starts with "echo", call the run_echo() function
-        if (strncmp(buffer, "echo", 4) == 0)
+        if (strncmp(command, "echo", 4) == 0)
         {
-            run_echo(buffer);
+            run_echo(command);
         }
-        // If the input starts with "export", call the builtin_export() function
-        else if (strncmp(buffer, "export", 6) == 0)
+        // If the input starts with "export", call the export() function
+        else if (strncmp(command, "export", 6) == 0)
         {
-            export(buffer);
+            export(command);
         }
-        else if (strncmp(buffer, "pwd", 8) == 0)
+        // If the input starts with "pwd", call the pwd() function
+        else if (strncmp(command, "pwd", 3) == 0)  // Check only the first 3 characters
         {
             pwd();
         }
-
+        // If the input starts with "cd", call the cd() function
+        else if (strncmp(command, "cd", 2) == 0)  // Check only the first 2 characters
+        {
+            char *path = command + 3;  // Get the path (skip "cd ")
+            cd(path); // Call the cd function
+        }
         // Handle unknown commands without printing "You entered"
         else
         {
-            printf("Command not recognized: %s\n", buffer);
+            printf("Command not recognized: %s\n", command);
         }
     }
 }
