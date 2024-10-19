@@ -49,7 +49,7 @@ void run_quash()
         }
         else if (strncmp(buffer, "pwd", 8) == 0)
         {
-            pwd(buffer);
+            pwd();
         }
 
         // Handle unknown commands without printing "You entered"

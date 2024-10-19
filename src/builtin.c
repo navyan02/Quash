@@ -44,9 +44,10 @@ void export(char **args, int num_args)
         fprintf(stderr, "export: Invalid format. Use: export VAR=VALUE\n");
         return;
     }
-    // Split the argument at the '='
+
+    // Split the argument at the first '='
     char *var = strtok(args[1], "=");
-    char *value = strtok(NULL, "=");
+    char *value = strtok(NULL, "");
 
     if (var == NULL || value == NULL)
     {
