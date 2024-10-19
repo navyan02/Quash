@@ -1,15 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-<<<<<<< HEAD
-#include <unistd.h>
-#include <limits.h>
-#include <ctype.h>
-=======
 #include <unistd.h> // for getcwd
 #include <limits.h> // for PATH_MAX
 #include <wordexp.h>
->>>>>>> 3994a8fb39a107b1ea7c8154fcde860e696aa677
 
 #define BUFFER_SIZE 1024
 
