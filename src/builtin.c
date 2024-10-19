@@ -4,7 +4,7 @@
 #include <unistd.h> // for getcwd
 #include <limits.h> // for PATH_MAX
 #include <wordexp.h>
-#include <ctype.h?>
+#include <ctype.h>
 
 #define BUFFER_SIZE 1024
 
