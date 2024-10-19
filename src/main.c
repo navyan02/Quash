@@ -6,9 +6,9 @@
 
 void run_quash();
 void handle_exit(char *input);
-void run_echo(char *input); // Declare run_echo here
-void export(char *input);   // Declare builtin_export here
-void pwd();                 // Declare builtin_export here
+void run_echo(char *input);       // Declare run_echo here
+void builtin_export(char *input); // Declare builtin_export here
+void pwd();                       // Declare builtin_export here
 
 int main()
 {
@@ -45,9 +45,9 @@ void run_quash()
         // If the input starts with "export", call the builtin_export() function
         else if (strncmp(buffer, "export", 6) == 0)
         {
-            export(buffer);
+            builtin_export(buffer);
         }
-        else if (strncmp(buffer, "pwd", 8) == 0)
+        else if (strncmp(buffer, "pwd", 3) == 0)
         {
             pwd();
         }

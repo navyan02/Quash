@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h> // for getcwd
 #include <limits.h> // for PATH_MAX
+#include <wordexp.h>
 
 void run_echo(char *input)
 {
@@ -37,29 +38,46 @@ void run_echo(char *input)
     }
 }
 
-void export(char **args, int num_args)
+void builtin_export(char *input)
 {
-    if (num_args != 2)
+    // Skip the "export " part
+    char *var = input + 7;
+
+    // Find the '=' character
+    char *equal_sign = strchr(var, '=');
+    if (equal_sign == NULL)
     {
-        fprintf(stderr, "export: Invalid format. Use: export VAR=VALUE\n");
+        fprintf(stderr, "export: invalid format\n");
         return;
     }
 
-    // Split the argument at the first '='
-    char *var = strtok(args[1], "=");
-    char *value = strtok(NULL, "");
+    // Split the variable name and value
+    *equal_sign = '\0';
+    char *name = var;
+    char *value = equal_sign + 1;
 
-    if (var == NULL || value == NULL)
+    // Use wordexp to expand environment variables
+    wordexp_t p;
+    if (wordexp(value, &p, 0) != 0)
     {
-        fprintf(stderr, "export: Invalid format. Use: export VAR=VALUE\n");
+        fprintf(stderr, "export: wordexp failed\n");
         return;
     }
 
-    // Set the environment variable using setenv
-    if (setenv(var, value, 1) == -1)
+    // Use the expanded value
+    char *expanded_value = p.we_wordv[0];
+
+    // Debug prints
+    // printf("Setting environment variable: %s=%s\n", name, expanded_value);
+
+    // Set the environment variable
+    if (setenv(name, expanded_value, 1) != 0)
     {
-        perror("export");
+        perror("setenv");
     }
+
+    // Free the memory allocated by wordexp
+    wordfree(&p);
 }
 
 void pwd()
