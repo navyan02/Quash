@@ -54,7 +54,7 @@ void run_quash()
         // If the input starts with "export", call the export() function
         else if (strncmp(command, "export", 6) == 0)
         {
-            export(command);
+            builtin_export(command);
         }
         // If the input starts with "pwd", call the pwd() function
         else if (strncmp(buffer, "pwd", 3) == 0)
