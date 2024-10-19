@@ -6,6 +6,7 @@
 
 void run_quash();
 void handle_exit(char *input);
+void run_echo(char *input);  // Declare run_echo here
 
 int main()
 {
