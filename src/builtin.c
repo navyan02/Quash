@@ -6,8 +6,17 @@
 
 void run_echo(char *input)
 {
-    // Remove "echo" part and print the rest
+    // Remove "echo " part and get the rest
     char *message = input + 5; // Skip the "echo " part
+
+    // Check if the message starts and ends with a single quote
+    size_t len = strlen(message);
+    if (len > 1 && message[0] == '\'' && message[len - 1] == '\'')
+    {
+        // Strip the single quotes
+        message[len - 1] = '\0'; // Remove closing quote
+        message++;               // Move pointer to skip opening quote
+    }
 
     // Check if it's an environment variable
     if (message[0] == '$')
@@ -27,6 +36,7 @@ void run_echo(char *input)
         printf("%s\n", message); // Normal echo
     }
 }
+
 void export(char **args, int num_args)
 {
     if (num_args != 2)
