@@ -17,34 +17,53 @@ int main()
 // main loop for Quash
 void run_quash()
 {
-    char buffer[BUFFER_SIZE];
+    char input_buffer[1024];
+    char *args[64]; // To store parsed arguments
+    int num_args;   // Number of arguments
 
     while (1)
     {
-        printf("[QUASH]$ "); // shell prompt
-        if (fgets(buffer, BUFFER_SIZE, stdin) == NULL)
+        printf("[QUASH]$ ");
+        fgets(input_buffer, 1024, stdin); // Read user input
+
+        // Remove the newline character from the input
+        input_buffer[strcspn(input_buffer, "\n")] = 0;
+
+        // Tokenize the input into arguments
+        num_args = 0;
+        args[num_args] = strtok(input_buffer, " ");
+        while (args[num_args] != NULL)
         {
-            perror("Error reading input");
-            continue;
+            num_args++;
+            args[num_args] = strtok(NULL, " ");
         }
 
-        // strip newline character from input
-        buffer[strcspn(buffer, "\n")] = 0;
+        if (num_args == 0)
+        {
+            continue; // No command entered, go to the next iteration
+        }
 
-        // handle the "exit" or "quit" commands
-        handle_exit(buffer);
-
-        // placeholder for future command handling logic
-        printf("You entered: %s\n", buffer);
-    }
-}
-
-// handle exit or quit command
-void handle_exit(char *input)
-{
-    if (strcmp(input, "exit") == 0 || strcmp(input, "quit") == 0)
-    {
-        printf("Exiting Quash...\n");
-        exit(0);
+        // Check for built-in commands
+        if (strcmp(args[0], "pwd") == 0)
+        {
+            builtin_pwd();
+        }
+        else if (strcmp(args[0], "echo") == 0)
+        {
+            builtin_echo(args, num_args);
+        }
+        else if (strcmp(args[0], "export") == 0)
+        {
+            builtin_export(args, num_args);
+        }
+        else if (strcmp(args[0], "exit") == 0 || strcmp(args[0], "quit") == 0)
+        {
+            break; // Exit the shell
+        }
+        else
+        {
+            // Handle external commands (to be implemented)
+            printf("Command not found: %s\n", args[0]);
+        }
     }
 }
