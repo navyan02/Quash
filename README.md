@@ -22,7 +22,7 @@ Quash implements the following features:
 
 ## Building and Running
 
-To build quash, you can use the provided [Makefile](Makefile):
+To build quash, you can use the provided [Makefile](makefile):
 
 ```
 make quash
