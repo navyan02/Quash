@@ -5,6 +5,7 @@
 #include "pipes.h"
 #include "jobs.h"
 #include <sys/wait.h>
+#include <signal.h> // Include for signal handling
 
 #define BUFFER_SIZE 1024
 
@@ -129,6 +130,23 @@ void run_quash()
             {
                 list_jobs();
             }
+            // Handle the "kill" command
+            else if (strncmp(command, "kill", 4) == 0)
+            {
+                char *pid_str = command + 5; // Get the PID (skip "kill ")
+                pid_t pid = atoi(pid_str);   // Convert string to PID
+
+                // Send SIGTERM to the specified PID
+                if (kill(pid, SIGTERM) == 0)
+                {
+                    printf("Sent kill signal to job [%d]\n", pid);
+                    remove_job(pid); // Remove job from the job list
+                }
+                else
+                {
+                    perror("Failed to kill the job");
+                }
+            }
             // Handle other unknown commands
             else
             {
@@ -144,7 +162,7 @@ int handle_exit(char *input)
     if (strcmp(input, "exit") == 0 || strcmp(input, "quit") == 0)
     {
         printf("Exiting Quash...\n");
-        exit(0); // You can use exit directly here too
+        exit(0); // Indicate that exit was called
     }
     return 0; // Indicate that exit was not called
 }
