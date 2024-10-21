@@ -144,7 +144,7 @@ int handle_exit(char *input)
     if (strcmp(input, "exit") == 0 || strcmp(input, "quit") == 0)
     {
         printf("Exiting Quash...\n");
-        return 1; // Indicate that exit was called
+        exit(0); // You can use exit directly here too
     }
     return 0; // Indicate that exit was not called
 }
