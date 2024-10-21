@@ -64,6 +64,13 @@ void run_quash()
             command[strlen(command) - 1] = '\0'; // Remove the '&' symbol
         }
 
+        // Check for background command
+        int background = (command[strlen(command) - 1] == '&');
+        if (background)
+        {
+            command[strlen(command) - 1] = '\0'; // Remove the '&' symbol
+        }
+
         // Check for pipe symbol
         if (strchr(command, '|') != NULL)
         {
