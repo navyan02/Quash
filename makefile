@@ -3,7 +3,7 @@
 all: quash
 
 quash: 
-	gcc -Wall src/main.c src/parser.c src/builtin.c src/execute.c -o quash
+	gcc -Wall src/main.c src/jobs.c src/parser.c src/builtin.c src/pipes.c -o quash
 
 clean: 
 	rm -f quash
