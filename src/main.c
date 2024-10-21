@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "pipes.h"
 #include "jobs.h"
+#include <sys/wait.h>
 
 #define BUFFER_SIZE 1024
 
@@ -15,16 +16,16 @@ void cd(char *path);
 void builtin_export(char *input);
 void pwd();
 void execute_command(char *cmd, int background);
-void execute_pipe(char **cmd1, char **cmd2);
-void execute_pipes(char ***cmds);
 void add_job(pid_t pid, char *command);
 void remove_job(pid_t pid);
 void list_jobs();
+void free_jobs(); // Declaration for the cleanup function
 
 int main()
 {
     printf("Welcome to Quash!\n");
     run_quash();
+    free_jobs(); // Cleanup jobs before exiting
     return 0;
 }
 
@@ -85,7 +86,8 @@ void run_quash()
                 cmd_args[j][k] = strtok(cmds[j], " ");
                 while (cmd_args[j][k] != NULL)
                 {
-                    cmd_args[j][++k] = strtok(NULL, " ");
+                    k++;
+                    cmd_args[j][k] = strtok(NULL, " ");
                 }
             }
             cmd_args[i] = NULL; // Null-terminate the array of commands
@@ -142,7 +144,7 @@ int handle_exit(char *input)
     if (strcmp(input, "exit") == 0 || strcmp(input, "quit") == 0)
     {
         printf("Exiting Quash...\n");
-        exit(0); // You can use exit directly here too
+        return 1; // Indicate that exit was called
     }
     return 0; // Indicate that exit was not called
 }
@@ -170,12 +172,11 @@ void execute_command(char *cmd, int background)
         // Parent process
         if (background)
         {
-            add_job(pid, cmd);
-            printf("Background job started: [%d] %d %s\n", next_job_id - 1, pid, cmd);
+            add_job(pid, cmd); // Add the job to the job list
         }
         else
         {
-            waitpid(pid, NULL, 0);
+            waitpid(pid, NULL, 0); // Wait for the foreground process to finish
         }
     }
     else
