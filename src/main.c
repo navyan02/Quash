@@ -6,6 +6,7 @@
 #include "jobs.h"
 #include <sys/wait.h>
 #include <signal.h> // Include for signal handling
+#include <fcntl.h>
 
 #define BUFFER_SIZE 1024
 
@@ -21,6 +22,7 @@ void add_job(pid_t pid, char *command);
 void remove_job(pid_t pid);
 void list_jobs();
 void free_jobs(); // Declaration for the cleanup function
+void execute_pipes(char ***cmds);
 
 int main()
 {
@@ -36,6 +38,8 @@ void run_quash()
 
     while (1)
     {
+        check_completed_jobs();
+
         printf("[QUASH]$ "); // Shell prompt
         if (fgets(buffer, BUFFER_SIZE, stdin) == NULL)
         {
@@ -66,7 +70,7 @@ void run_quash()
             command[strlen(command) - 1] = '\0'; // Remove the '&' symbol
         }
 
-        // Check for pipe symbol
+        // Check for pipes and redirection symbols
         if (strchr(command, '|') != NULL)
         {
             // Split the command into parts
@@ -104,33 +108,32 @@ void run_quash()
         }
         else
         {
-            // If the input starts with "echo", call the run_echo() function
-            if (strncmp(command, "echo", 4) == 0)
+            // Check for redirection symbols
+            if (strchr(command, '>') != NULL || strchr(command, '<') != NULL)
+            {
+                execute_command(command, background);
+            }
+            else if (strncmp(command, "echo", 4) == 0)
             {
                 run_echo(command);
             }
-            // If the input starts with "export", call the export() function
             else if (strncmp(command, "export", 6) == 0)
             {
                 builtin_export(command);
             }
-            // If the input starts with "pwd", call the pwd() function
             else if (strncmp(command, "pwd", 3) == 0)
             {
                 pwd();
             }
-            // If the input starts with "cd", call the cd() function
-            else if (strncmp(command, "cd", 2) == 0) // Check only the first 2 characters
+            else if (strncmp(command, "cd", 2) == 0)
             {
                 char *path = command + 3; // Get the path (skip "cd ")
                 cd(path);                 // Call the cd function
             }
-            // Handle the "jobs" command
             else if (strcmp(command, "jobs") == 0)
             {
                 list_jobs();
             }
-            // Handle the "kill" command
             else if (strncmp(command, "kill", 4) == 0)
             {
                 char *pid_str = command + 5; // Get the PID (skip "kill ")
@@ -147,7 +150,6 @@ void run_quash()
                     perror("Failed to kill the job");
                 }
             }
-            // Handle other unknown commands
             else
             {
                 execute_command(command, background);
@@ -174,15 +176,76 @@ void execute_command(char *cmd, int background)
     {
         // Child process
         char *args[BUFFER_SIZE];
+        char *input_file = NULL;
+        char *output_file = NULL;
+        int append_mode = 0;
+
+        // Tokenize the command and check for redirection
+        char *token = strtok(cmd, " ");
         int i = 0;
-        args[i] = strtok(cmd, " ");
-        while (args[i] != NULL)
+        while (token != NULL)
         {
-            i++;
-            args[i] = strtok(NULL, " ");
+            // Check for input redirection
+            if (strcmp(token, "<") == 0)
+            {
+                input_file = strtok(NULL, " ");
+            }
+            // Check for output redirection
+            else if (strcmp(token, ">") == 0)
+            {
+                output_file = strtok(NULL, " ");
+            }
+            // Check for append redirection
+            else if (strcmp(token, ">>") == 0)
+            {
+                append_mode = 1;
+                output_file = strtok(NULL, " ");
+            }
+            else
+            {
+                args[i++] = token; // Add to args if not a redirection token
+            }
+            token = strtok(NULL, " ");
         }
+        args[i] = NULL; // Null-terminate the args array
+
+        // Handle input redirection
+        if (input_file)
+        {
+            int input_fd = open(input_file, O_RDONLY);
+            if (input_fd < 0)
+            {
+                perror("Failed to open input file");
+                exit(EXIT_FAILURE);
+            }
+            dup2(input_fd, STDIN_FILENO); // Redirect standard input
+            close(input_fd);
+        }
+
+        // Handle output redirection
+        if (output_file && strcmp(args[0], "find") == 0)
+        {
+            int output_fd;
+            if (append_mode)
+            {
+                output_fd = open(output_file, O_WRONLY | O_CREAT | O_APPEND, 0644);
+            }
+            else
+            {
+                output_fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            }
+            if (output_fd < 0)
+            {
+                perror("Failed to open output file");
+                exit(EXIT_FAILURE);
+            }
+            dup2(output_fd, STDOUT_FILENO); // Redirect standard output
+            close(output_fd);
+        }
+
+        // Execute the command
         execvp(args[0], args);
-        perror("execvp");
+        //perror("execvp");
         exit(EXIT_FAILURE);
     }
     else if (pid > 0)
