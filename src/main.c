@@ -223,7 +223,7 @@ void execute_command(char *cmd, int background)
         }
 
         // Handle output redirection
-        if (output_file && strcmp(args[0], "find") == 0)
+        if (output_file)
         {
             int output_fd;
             if (append_mode)
