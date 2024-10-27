@@ -16,5 +16,6 @@ void add_job(pid_t pid, char *command);
 void remove_job(pid_t pid);
 void list_jobs();
 void free_jobs();
+void check_completed_jobs();
 
 #endif // JOBS_H
