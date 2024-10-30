@@ -38,7 +38,7 @@ void run_quash()
 
     while (1)
     {
-        check_completed_jobs();
+        
 
         printf("[QUASH]$ "); // Shell prompt
         if (fgets(buffer, BUFFER_SIZE, stdin) == NULL)
@@ -155,6 +155,8 @@ void run_quash()
                 execute_command(command, background);
             }
         }
+
+        check_completed_jobs();
     }
 }
 
@@ -225,39 +227,28 @@ void execute_command(char *cmd, int background)
         // Handle output redirection
         if (output_file)
         {
-            int output_fd;
-            if (append_mode)
-            {
-                output_fd = open(output_file, O_WRONLY | O_CREAT | O_APPEND, 0644);
-            }
-            else
-            {
-                output_fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            }
+            int output_fd = open(output_file, O_WRONLY | O_CREAT | (append_mode ? O_APPEND : O_TRUNC), 0644);
             if (output_fd < 0)
             {
                 perror("Failed to open output file");
                 exit(EXIT_FAILURE);
             }
-            dup2(output_fd, STDOUT_FILENO); // Redirect standard output
+            dup2(output_fd, STDOUT_FILENO);
             close(output_fd);
         }
 
-        // Execute the command
         execvp(args[0], args);
-        //perror("execvp");
         exit(EXIT_FAILURE);
     }
     else if (pid > 0)
     {
-        // Parent process
         if (background)
         {
-            add_job(pid, cmd); // Add the job to the job list
+            add_job(pid, cmd);
         }
         else
         {
-            waitpid(pid, NULL, 0); // Wait for the foreground process to finish
+            waitpid(pid, NULL, 0);
         }
     }
     else
