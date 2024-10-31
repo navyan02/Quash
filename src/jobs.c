@@ -9,23 +9,19 @@
 Job *job_list = NULL;
 int next_job_id = 1;
 
-// Function to add a job
-int add_job(pid_t pid, char *command)
+void add_job(pid_t pid, char *command)
 {
     Job *new_job = malloc(sizeof(Job));
-    new_job->job_id = next_job_id++; // Assign a unique job ID
+    new_job->job_id = next_job_id++;
     new_job->pid = pid;
     strncpy(new_job->command, command, sizeof(new_job->command) - 1);
-    new_job->command[sizeof(new_job->command) - 1] = '\0'; // Ensure null-termination
-    new_job->next = job_list;                              // Add new job at the start of the list
+    new_job->command[sizeof(new_job->command) - 1] = '\0';
+    new_job->next = job_list;
     job_list = new_job;
 
     printf("Background job started: [%d] %d %s\n", new_job->job_id, pid, command);
-
-    return new_job->job_id;
 }
 
-// Function to list jobs
 void list_jobs()
 {
     Job *current = job_list;
@@ -36,71 +32,48 @@ void list_jobs()
     }
 }
 
-// Function to free jobs
 void free_jobs()
 {
     Job *current = job_list;
     while (current != NULL)
     {
-        Job *next_job = current->next; // Save the next job
-        free(current);                 // Free the current job
-        current = next_job;            // Move to the next job
+        Job *next_job = current->next;
+        free(current);
+        current = next_job;
     }
-    job_list = NULL; // Clear the job list
+    job_list = NULL;
 }
 
-// Function to remove a job
-// void remove_job(pid_t pid)
-// {
-// 	Job **current = &job_list;
-// 	while (*current != NULL)
-// 	{
-//     	if ((*current)->pid == pid)
-//     	{
-//         	Job *to_delete = *current;
-//         	*current = (*current)->next; // Remove the job from the list
-//         	free(to_delete);         	// Free the memory
-//         	return;
-//     	}
-//     	current = &(*current)->next; // Move to the next job
-// 	}
-// }
-
-void remove_job(const char *input)
+void remove_job(pid_t pid, int job_id)
 {
     Job **current = &job_list;
-    int is_job_id = (input[0] == '%'); // Check if input starts with '%'
-    int target_id;
-
-    if (is_job_id)
-    {
-        // Parse job ID from string input, skipping the '%' character
-        target_id = atoi(input + 1);
-    }
-    else
-    {
-        // Parse PID from input if not prefixed with '%'
-        target_id = atoi(input);
-    }
-
     while (*current != NULL)
     {
-        if ((is_job_id && (*current)->job_id == target_id) ||
-            (!is_job_id && (*current)->pid == target_id))
+        if ((*current)->pid == pid || (*current)->job_id == job_id)
         {
             Job *to_delete = *current;
-            *current = (*current)->next; // Remove job from list
-            free(to_delete);             // Free memory
-            printf("Killed job: [%d] %d\n", to_delete->job_id, to_delete->pid);
+            *current = (*current)->next;
+            free(to_delete);
             return;
         }
-        current = &(*current)->next; // Move to next job
+        current = &(*current)->next;
     }
-
-    printf("Job not found: %s\n", input);
 }
 
-// Function to check for completed jobs
+pid_t get_pid_from_job_id(int job_id)
+{
+    Job *current = job_list;
+    while (current != NULL)
+    {
+        if (current->job_id == job_id)
+        {
+            return current->pid;
+        }
+        current = current->next;
+    }
+    return -1;
+}
+
 void check_completed_jobs()
 {
     Job *current = job_list;
@@ -109,35 +82,34 @@ void check_completed_jobs()
     while (current != NULL)
     {
         int status;
-        pid_t result = waitpid(current->pid, &status, WNOHANG); // Non-blocking wait
+        pid_t result = waitpid(current->pid, &status, WNOHANG);
 
         if (result == -1)
         {
             perror("waitpid error");
             return;
         }
-        else if (result > 0) // Job has completed
+        else if (result > 0)
         {
             printf("Completed: [%d] %d %s\n", current->job_id, current->pid, current->command);
 
-            // Remove the job from the list
-            if (prev == NULL) // Removing the head
+            if (prev == NULL)
             {
                 job_list = current->next;
                 free(current);
-                current = job_list; // Move to the next job
+                current = job_list;
             }
             else
             {
-                prev->next = current->next; // Bypass the current job
+                prev->next = current->next;
                 free(current);
-                current = prev->next; // Move to the next job
+                current = prev->next;
             }
         }
         else
         {
             prev = current;
-            current = current->next; // Move to the next job
+            current = current->next;
         }
     }
 }
