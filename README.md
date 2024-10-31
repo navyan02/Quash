@@ -165,7 +165,3 @@ Background job started: [2] 2343 sleep 15 &
 ## Contributors
 
 Navya Nittala & Shayaan Mohammed
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
