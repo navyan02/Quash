@@ -12,8 +12,8 @@ typedef struct Job
     struct Job *next;          // Pointer to the next job in the list
 } Job;
 
-void add_job(pid_t pid, char *command);
-void remove_job(pid_t pid);
+int add_job(pid_t pid, char *command);
+void remove_job(const char *input);
 void list_jobs();
 void free_jobs();
 void check_completed_jobs();
