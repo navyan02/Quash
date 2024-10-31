@@ -1,0 +1,8 @@
+Project Buil Commands:
+
+To build Quash use: make
+To clean quash use:  make clean
+
+Usage:
+
+To run Quash use: ./quash
